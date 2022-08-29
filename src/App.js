@@ -1,26 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { StreamChat } from "stream-chat";
-import {
-  Chat,
-  Channel,
-  ChannelHeader,
-  ChannelList,
-  MessageList,
-  MessageInput,
-  Thread,
-  Window,
-} from "stream-chat-react";
+import { Chat, Channel } from "stream-chat-react";
+import Auth from "./components/Auth";
+import MessagingContainer from "./components/MessagingContainer";
+import Video from "./components/Video";
 import "@stream-io/stream-chat-css/dist/css/index.css";
 
-const filters = { type: "messaging" };
-const options = { state: true, presence: true, limit: 10 };
-const sort = { last_message_at: -1 };
-
-const client = StreamChat.getInstance("f7e3c6uy7m5b");
+const client = StreamChat.getInstance("ywj9cyryquv2");
 
 const App = () => {
   const [clientReady, setClientReady] = useState(false);
   const [channel, setChannel] = useState(null);
+
+  const authToken = false;
 
   useEffect(() => {
     const setupClient = async () => {
@@ -30,7 +22,7 @@ const App = () => {
             id: "dave-matthews",
             name: "Dave Matthews",
           },
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZGF2ZS1tYXR0aGV3cyJ9.dc7-QjQfOffOCGCRQDEP2rClSlnni7LGzoiLOxyVDyY"
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZGF2ZS1tYXR0aGV3cyJ9.k0JytMxXRUwy43B83CPirifqpj4zWrIWeNKyNGZB9s8"
         );
         const channel = await client.channel("gaming", "gaming-demo", {
           name: "Gaming Demo",
@@ -49,17 +41,17 @@ const App = () => {
   if (!clientReady) return null;
 
   return (
-    <Chat client={client} darkMode={true}>
-      <ChannelList filters={filters} sort={sort} options={options} />
-      <Channel channel={channel}>
-        <Window>
-          <ChannelHeader />
-          <MessageList />
-          <MessageInput />
-        </Window>
-        <Thread />
-      </Channel>
-    </Chat>
+    <>
+      {!authToken && <Auth />}
+      {authToken && (
+        <Chat client={client} darkMode={true}>
+          <Channel channel={channel}>
+            <Video />
+            <MessagingContainer />
+          </Channel>
+        </Chat>
+      )}
+    </>
   );
 };
 
