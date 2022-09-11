@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
 import { StreamChat } from "stream-chat";
 import { Chat, Channel } from "stream-chat-react";
 import Auth from "./components/Auth";
@@ -6,37 +7,42 @@ import MessagingContainer from "./components/MessagingContainer";
 import Video from "./components/Video";
 import "@stream-io/stream-chat-css/dist/css/index.css";
 
-const client = StreamChat.getInstance("ywj9cyryquv2");
+const client = StreamChat.getInstance("f7e3c6uy7m5b");
 
 const App = () => {
+  const [cookies, setCookie, removeCookie] = useCookies(["user"]);
   const [clientReady, setClientReady] = useState(false);
   const [channel, setChannel] = useState(null);
+  const [users, setUsers] = useState(null)
 
-  const authToken = false;
+  const authToken = cookies.AuthToken;
 
-  useEffect(() => {
+  useEffect( async () => {
+    if (authToken) {
+      const { users } = await client.queryUsers({ role: "user" })
+      setUsers(users)
+    } 
+    }, []);
+
     const setupClient = async () => {
-      try {
+    try {
         await client.connectUser(
           {
-            id: "dave-matthews",
-            name: "Dave Matthews",
+            id: cookies.UserId,
+            name: cookies.Name,
+            hashedPassword: cookies.HashedPassword,
           },
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZGF2ZS1tYXR0aGV3cyJ9.k0JytMxXRUwy43B83CPirifqpj4zWrIWeNKyNGZB9s8"
+          authToken
         );
         const channel = await client.channel("gaming", "gaming-demo", {
           name: "Gaming Demo",
         });
         setChannel(channel);
-
-        setClientReady(true);
       } catch (err) {
         console.log(err);
       }
-    };
 
-    setupClient();
-  }, []);
+    if (authToken) setupClient();
 
   if (!clientReady) return null;
 
@@ -47,7 +53,7 @@ const App = () => {
         <Chat client={client} darkMode={true}>
           <Channel channel={channel}>
             <Video />
-            <MessagingContainer />
+            <MessagingContainer users={users} />
           </Channel>
         </Chat>
       )}
